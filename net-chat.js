@@ -15,10 +15,20 @@ chatServer.on('connection', function(client) {
 	clientList.push(client);
 	client.on('data', function(data) {
 		//broadcast(data, client);
+		var cleanlist = [];
 		clientList.forEach(function(c){
 			if(c !== client){
-				c.write(client.name + " says " + data);
+				if(c.writeable){
+					c.write(client.name + " says " + data);
+				} else{ //destory if not writeable, also add this client to remove list
+					cleanlist.push(c);
+					c.destroy();
+				}
 			}
+		});
+		//remove dead node
+		cleanlist.forEach(function(r){
+			clientList.splice(clientList.indexOf(r),1);	
 		});
 	});
 	client.on("end",function(){
